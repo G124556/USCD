@@ -1,65 +1,94 @@
-# USCD: Uncertainty-Guided Semi-Supervised Change Detection
+# USCD: Uncertainty-Guided Semi-Supervised Change Detection for Remote Sensing Images
 
-This is a complete PyTorch implementation of the paper **"Uncertainty-Guided Semi-Supervised Change Detection for Remote Sensing Images"**.
+[![Paper](https://img.shields.io/badge/Paper-IEEE%20TGRS-blue)](https://github.com/G124556/USCD)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.7+-orange.svg)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-1.10+-red.svg)](https://pytorch.org/)
 
-## Overview
+> **Official PyTorch Implementation**  
+> **Paper:** *Uncertainty-Guided Semi-Supervised Change Detection for Remote Sensing Images*  
+> **Status:** Under Review at IEEE Transactions on Geoscience and Remote Sensing (TGRS)
 
-USCD is a novel framework for semi-supervised change detection that introduces a triple-guarantee mechanism for targeted learning reinforcement in difficult regions based on systematic uncertainty quantification.
+---
 
-### Key Components
+## 📋 Abstract
 
-1. **UAPA (Uncertainty-Aware Protective Augmentation)**: Identifies high-uncertainty regions and implements selective copy-paste augmentation
-2. **DRCL (Difficult Region Contrastive Learning)**: Enhances feature discriminability through local and global contrastive learning
-3. **UGLR (Uncertainty-Guided Loss Re-weighting)**: Applies exponential adaptive weighting for supervision signals
+Semi-supervised change detection in remote sensing images faces a fundamental challenge wherein existing methods employ uniform processing strategies that fail to account for spatial heterogeneity in prediction difficulty. This paper proposes **USCD** (Uncertainty-guided Semi-supervised Change Detection), a novel framework that introduces a **triple-guarantee mechanism** for targeted learning reinforcement in difficult regions based on systematic uncertainty quantification. 
 
-## Architecture
+The framework comprises three synergistic components:
+- **Uncertainty-Aware Protective Augmentation (UAPA)** - Identifies high-uncertainty regions and implements selective copy-paste augmentation
+- **Difficult Region Contrastive Learning (DRCL)** - Enhances feature discriminability through local and global contrastive learning  
+- **Uncertainty-Guided Loss Re-weighting (UGLR)** - Applies exponential adaptive weighting for supervision signals
+
+**Code is available at:** https://github.com/G124556/USCD
+
+---
+
+## 🔥 Highlights
+
+- **🎯 Novel Uncertainty-Guided Paradigm**: Utilizes prediction uncertainty as the core signal for identifying difficult regions and guiding differentiated learning
+- **🏆 State-of-the-Art Performance**: Achieves superior results across 6 benchmark datasets with limited labeled data (5%-40%)
+- **⚡ Efficient Architecture**: Competitive computational efficiency (40.47M params, 29.10G FLOPs) comparable to existing methods
+- **🌍 Strong Generalization**: Robust cross-domain transfer capabilities validated through extensive experiments
+- **📊 Significant Improvements**: 
+  - LEVIR-CD: **90.22% F1** (5% labels) vs 90.01% (previous SOTA)
+  - WHU-CD: **89.41% F1** (5% labels) vs 88.80% (previous SOTA)
+  - CDD: **87.27% F1** (5% labels) vs 86.26% (previous SOTA)
+
+---
+
+## 🏗️ Architecture
+
+<p align="center">
+  <img src="fig/2.png" alt="USCD Architecture" width="100%">
+</p>
+
+**USCD Framework Overview:**
+- **Teacher-Student Architecture**: EMA-based teacher network provides stable predictions
+- **UAPA Module**: Window-based difficulty assessment with dynamic protection strategy
+- **DRCL Module**: Dual-level contrastive learning (local anchor-based + global prototype-based)
+- **UGLR Module**: Differentiated exponential weighting for labeled and unlabeled data
+- **Backbone**: ResNet-50 encoder + DeepLab decoder with ASPP
+
+### Key Innovation: Triple-Guarantee Mechanism
 
 ```
-USCD Framework
-├── uscd_model.py          # Main network (ResNet-50 + DeepLab)
-├── uapa_module.py         # Uncertainty-Aware Protective Augmentation
-├── drcl_module.py         # Difficult Region Contrastive Learning
-├── uglr_module.py         # Uncertainty-Guided Loss Re-weighting
-├── dataset.py             # Dataset loader for change detection
-├── train.py               # Training script
-└── test.py                # Testing script
+Input Images → Uncertainty Quantification (U = 1 - |P₀ - P₁|)
+    ↓
+UAPA: Protect difficult regions during augmentation
+    ↓
+DRCL: Enhance features via contrastive learning
+    ↓
+UGLR: Adaptive loss weighting (↑ labeled, ↓ unlabeled)
+    ↓
+Precise Change Detection in Difficult Regions
 ```
 
-## Installation
+---
 
-### Requirements
+## 📊 Datasets
 
-- Python 3.7+
-- PyTorch 1.10+
-- CUDA 10.2+ (for GPU training)
+We conduct extensive experiments on **six diverse benchmark datasets** covering different scenarios, sensor types, and change characteristics:
 
-### Setup
+| Dataset | Resolution | Size | Train/Val/Test | Time Span | Change Type | Download |
+|---------|-----------|------|----------------|-----------|-------------|----------|
+| **LEVIR-CD** | 0.5m | 1024×1024 | 7120/1024/2048 | 5-14 years | Building | [Link](https://justchenhao.github.io/LEVIR/) |
+| **WHU-CD** | 0.2m | 256×256 | 5947/743/744 | 2012-2016 | Building | [Link](https://gpcv.whu.edu.cn/data/building_dataset.html) |
+| **CDD** | 0.03-1.0m | 256×256 | 10000/3000/3000 | Varying | Seasonal | [Link](https://aistudio.baidu.com/datasetdetail/78676) |
+| **S2Looking** | 0.5-0.8m | 1024×1024 | 3500/500/1000 | Varying | Building | [Link](https://github.com/S2Looking/Dataset) |
+| **SYSU-CD** | 0.5m | 256×256 | 12000/4000/4000 | 2007-2014 | Urban | [Link](https://github.com/liumency/SYSU-CD) |
+| **JL1-CD** | 0.5-0.75m | 512×512 | 4000/500/500 | Varying | Building/Urban | [Link](https://github.com/circleLZY/MTKD-CD) |
 
-```bash
-# Clone the repository
-git clone <repository-url>
-cd uscd
+### Dataset Preparation
 
-# Install dependencies
-pip install -r requirements.txt
-```
-
-## Dataset Preparation
-
-The expected dataset structure:
+Organize your dataset in the following structure:
 
 ```
 dataset_root/
 ├── train/
-│   ├── A/           # Pre-temporal images
-│   │   ├── img1.png
-│   │   └── ...
-│   ├── B/           # Post-temporal images
-│   │   ├── img1.png
-│   │   └── ...
-│   └── label/       # Change masks
-│       ├── img1.png
-│       └── ...
+│   ├── A/              # Pre-temporal images
+│   ├── B/              # Post-temporal images
+│   └── label/          # Binary change masks (0: unchanged, 1: changed)
 ├── val/
 │   ├── A/
 │   ├── B/
@@ -70,252 +99,340 @@ dataset_root/
     └── label/
 ```
 
-### Supported Datasets
+---
 
-- **LEVIR-CD**: Building change detection (0.5m resolution)
-- **WHU-CD**: Building change detection (0.2m resolution)
-- **CDD**: Seasonal change detection (0.03-1m resolution)
-- **S2Looking**: Satellite building changes (0.5-0.8m resolution)
-- **SYSU-CD**: Urban area changes (0.5m resolution)
-- **JL1-CD**: Jilin-1 satellite changes (0.5-0.75m resolution)
+## 🚀 Getting Started
 
-## Training
+### Prerequisites
 
-### Basic Training
+```bash
+# Environment
+Python >= 3.7
+PyTorch >= 1.10
+CUDA >= 10.2 (for GPU training)
+```
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/G124556/USCD.git
+cd USCD
+
+# Create virtual environment (recommended)
+conda create -n uscd python=3.9
+conda activate uscd
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Quick Start
+
+**1. Training with 5% labeled data:**
 
 ```bash
 python train.py \
-    --data_root /path/to/dataset \
+    --data_root /path/to/LEVIR-CD \
     --label_ratio 0.05 \
     --epochs 100 \
     --batch_size 8 \
     --pretrained \
-    --save_dir ./checkpoints \
-    --log_dir ./logs
+    --save_dir ./checkpoints/levir_5percent \
+    --log_dir ./logs/levir_5percent
 ```
 
-### Training with Different Label Ratios
-
-```bash
-# 5% labeled data
-python train.py --data_root /path/to/dataset --label_ratio 0.05
-
-# 10% labeled data
-python train.py --data_root /path/to/dataset --label_ratio 0.10
-
-# 20% labeled data
-python train.py --data_root /path/to/dataset --label_ratio 0.20
-```
-
-### Key Training Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `--label_ratio` | Ratio of labeled samples | 0.05 |
-| `--epochs` | Total training epochs | 100 |
-| `--warmup_epochs` | Supervised warmup epochs | 30 |
-| `--batch_size` | Batch size | 8 |
-| `--lr` | Initial learning rate | 0.01 |
-| `--ema_momentum` | EMA momentum for teacher | 0.999 |
-
-### UAPA Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `--window_size` | Window size for dividing feature map | 16 |
-| `--beta` | Protection ratio | 0.3 |
-| `--rho_max` | Maximum paste ratio | 0.5 |
-| `--rho_min` | Minimum paste ratio | 0.1 |
-
-### DRCL Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `--num_anchors` | Number of anchor points | 32 |
-| `--num_samples` | Number of samples per anchor | 64 |
-| `--temperature` | Temperature for InfoNCE loss | 0.1 |
-| `--memory_size` | Size of prototype memory banks | 256 |
-
-### UGLR Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `--gamma_labeled` | Weight coefficient for labeled data | 2.0 |
-| `--gamma_unlabeled` | Weight coefficient for unlabeled data | -1.0 |
-| `--confidence_threshold` | Threshold for pseudo labels | 0.9 |
-| `--contrastive_weight` | Weight for contrastive loss | 0.1 |
-
-## Testing
-
-### Basic Testing
+**2. Testing:**
 
 ```bash
 python test.py \
-    --data_root /path/to/dataset \
-    --checkpoint ./checkpoints/best.pth \
+    --data_root /path/to/LEVIR-CD \
+    --checkpoint ./checkpoints/levir_5percent/best.pth \
     --batch_size 8 \
     --save_vis \
     --vis_dir ./visualizations
 ```
 
-### Testing Parameters
+**3. Quick test (verify installation):**
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `--checkpoint` | Path to model checkpoint | required |
-| `--save_vis` | Save visualization results | False |
-| `--vis_dir` | Directory for visualizations | ./visualizations |
-| `--max_vis` | Max batches to visualize | 20 |
-
-### Output Metrics
-
-The test script will output:
-- **Confusion Matrix**: TP, FP, TN, FN
-- **Precision**: TP / (TP + FP)
-- **Recall**: TP / (TP + FN)
-- **F1-Score**: 2 × Precision × Recall / (Precision + Recall)
-- **IoU**: TP / (TP + FP + FN)
-- **Accuracy**: (TP + TN) / (TP + TN + FP + FN)
-
-## Model Architecture Details
-
-### Network Structure
-
-```
-Input: Bi-temporal images (Pre-temporal + Post-temporal)
-    ↓
-ResNet-50 Encoder (6 channels input)
-    ↓
-DeepLab Decoder with ASPP
-    ↓
-Output: Change prediction (2 classes)
+```bash
+python quick_test.py
 ```
 
-### Teacher-Student Framework
+---
 
-- **Student Network**: Primary learning network
-- **Teacher Network**: Provides stable predictions via EMA
-- **EMA Update**: θ_t = 0.999 × θ_t + 0.001 × θ_s
+## 📈 Experimental Results
 
-### Uncertainty Quantification
+### Main Results (5% Labeled Data)
+
+| Method | LEVIR-CD | WHU-CD | CDD | S2Looking | SYSU-CD | JL1-CD |
+|--------|----------|--------|-----|-----------|---------|--------|
+| | F1 / IoU | F1 / IoU | F1 / IoU | F1 / IoU | F1 / IoU | F1 / IoU |
+| Sup. only | 69.56 / 49.95 | 72.54 / 60.72 | 75.32 / 59.21 | 42.15 / 26.78 | 75.9 / 61.3 | 54.27 / 37.24 |
+| SemiCDNet | 82.69 / 70.48 | 81.48 / 68.75 | 76.74 / 62.27 | 41.34 / 26.12 | 71.9 / 56.2 | 54.51 / 37.47 |
+| SemiCD | 85.18 / 74.19 | 79.36 / 65.79 | 78.24 / 64.26 | 46.78 / 30.56 | 78.4 / 64.6 | 57.09 / 39.95 |
+| UniMatch | 89.43 / 80.88 | 88.61 / 79.54 | 85.56 / 77.47 | 45.67 / 29.78 | 79.2 / 64.7 | 69.80 / 53.61 |
+| CutMix-CD | **90.01** / 81.48 | **88.80** / 81.48 | **86.26** / 77.96 | **54.89** / 38.23 | 78.7 / 64.5 | 65.89 / 49.13 |
+| **USCD (Ours)** | **90.22** / **81.56** | **89.41** / **81.52** | **87.27** / **79.02** | **55.82** / **39.18** | **79.8** / **66.5** | **71.15** / **55.23** |
+| Oracle | 92.59 / 84.52 | 94.69 / 88.36 | 96.64 / 91.97 | 67.66 / 51.33 | 82.4 / 69.6 | 82.54 / 70.35 |
+
+**Key Observations:**
+- 🎯 Consistent improvements across all 6 datasets
+- 📊 Maximum gains on challenging datasets (S2Looking: +0.93% F1, JL1-CD: +1.35% F1)
+- ⚡ Approaches oracle performance with only 5% labels
+
+### Performance vs. Label Ratio
+
+<p align="center">
+  <img src="fig/9.png" alt="Performance Comparison" width="80%">
+</p>
+
+### Ablation Study (LEVIR-CD, 5% labels)
+
+| Configuration | F1 | IoU | Δ F1 |
+|--------------|-----|-----|------|
+| Baseline | 86.34 | 76.92 | - |
+| + UAPA | 88.15 | 78.74 | +1.81 |
+| + UAPA + DRCL | 89.45 | 80.12 | +1.30 |
+| + Full (UAPA + DRCL + UGLR) | **90.22** | **81.56** | +0.77 |
+
+**Component Contributions:**
+- **UAPA**: Largest improvement (+1.81% F1) - preserves critical information in difficult regions
+- **DRCL**: Significant boost (+1.30% F1) - enhances feature discriminability  
+- **UGLR**: Final refinement (+0.77% F1) - balances learning between labeled/unlabeled data
+
+### Cross-Domain Generalization
+
+| Transfer Setting | 5% | 10% |
+|-----------------|-----|-----|
+| | F1 / IoU | F1 / IoU |
+| LEVIR-CD → WHU-CD | 54.69 / 38.42 | 66.95 / 51.32 |
+| LEVIR(Sup.) + WHU(Unsup.) → LEVIR | 83.72 / 70.47 | 85.42 / 74.11 |
+
+**Demonstrates:** Strong transferability and effective cross-domain data utilization
+
+---
+
+## ⚙️ Training Details
+
+### Hyperparameters
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| **Training** | | |
+| Total Epochs | 100 | Total training iterations |
+| Warmup Epochs | 30 | Supervised warmup phase |
+| Batch Size | 8 | Samples per batch |
+| Learning Rate | 0.01 → 1e-4 | Linear decay |
+| Optimizer | SGD | Momentum=0.9, Weight decay=1e-4 |
+| EMA Momentum | 0.999 | Teacher network update |
+| **UAPA** | | |
+| Window Size (N) | 16 | Grid division size |
+| Protection Ratio (β) | 0.3 | Dynamic protection ratio |
+| Paste Ratio (ρ) | 0.5 → 0.1 | Decreases with training |
+| **DRCL** | | |
+| Num Anchors (K) | 32 | Anchor points per batch |
+| Num Samples (N) | 64 | Samples per anchor |
+| Temperature (τ) | 0.1 | InfoNCE temperature |
+| Memory Size | 256 | Prototype bank capacity |
+| **UGLR** | | |
+| γ_labeled | 2.0 | Weight coefficient (labeled) |
+| γ_unlabeled | -1.0 | Weight coefficient (unlabeled) |
+| Confidence Threshold | 0.9 | Pseudo-label filtering |
+| Contrastive Weight | 0.1 | Loss balance coefficient |
+
+### Training Strategy
+
+```python
+# Phase 1: Supervised Warmup (Epochs 1-30)
+L_warmup = L_CE(labeled_data)
+
+# Phase 2: Semi-Supervised Learning (Epochs 31-100)
+L_total = L_sup + L_unsup + 0.1 × L_contrast
+```
+
+**Loss Functions:**
+- `L_sup`: Uncertainty-weighted supervised loss (Eq. 20)
+- `L_unsup`: Pseudo-label based unsupervised loss (Eq. 21)
+- `L_contrast`: DRCL loss (L_local + 0.5 × L_global)
+---
+
+## 🔬 Methodology
+
+### 1. Uncertainty Quantification
+
+Pixel-level uncertainty measure:
 
 ```
 U(x,y) = 1 - |P₀(x,y) - P₁(x,y)|
 ```
-where P₀ and P₁ are probabilities for unchanged and changed classes.
 
-## Training Process
+where P₀ and P₁ are prediction probabilities for unchanged and changed classes.
 
-### Phase 1: Supervised Warmup (Epochs 1-30)
+**Properties:**
+- U = 1 when P₀ = P₁ = 0.5 (maximum uncertainty)
+- U = 0 when model is confident (P₀ ≈ 1 or P₁ ≈ 1)
+- Captures decision boundary ambiguity
 
-- Use only labeled data
-- Train with standard cross-entropy loss
-- Build basic change detection capability
+### 2. Uncertainty-Aware Protective Augmentation (UAPA)
 
-### Phase 2: Semi-Supervised Learning (Epochs 31-100)
-
-1. **Generate pseudo-labels** from teacher network
-2. **Apply UAPA** for protective augmentation
-3. **Compute DRCL loss** for difficult region features
-4. **Apply UGLR** for adaptive loss weighting
-5. **Update student** via backpropagation
-6. **Update teacher** via EMA
-
-## Loss Function
-
-```
-L_total = L_sup + L_unsup + 0.1 × L_contrast
-
-where:
-- L_sup: Supervised loss with uncertainty weighting
-- L_unsup: Unsupervised loss with pseudo labels
-- L_contrast: Contrastive learning loss (local + 0.5 × global)
+**Window-based Difficulty Assessment:**
+```python
+1. Divide feature map into N×N windows
+2. Compute uncertainty score: S_ij = mean(U) over window
+3. Select top-K windows with highest uncertainty as protected regions
+4. Apply copy-paste to non-protected regions only
 ```
 
-## Expected Performance
+**Dynamic Protection Strategy:**
+```
+K = ⌊β × (t/T) × N²⌋
+```
+- Increases protection gradually during training
+- Prevents loss of discriminative information
 
-### LEVIR-CD Dataset (5% labeled data)
+### 3. Difficult Region Contrastive Learning (DRCL)
 
-| Metric | Performance |
-|--------|-------------|
-| F1-Score | ~90.22% |
-| IoU | ~81.56% |
-| Precision | ~90.5% |
-| Recall | ~89.9% |
+**Local Contrastive Learning:**
+- Anchor-based hard sample mining within difficult regions
+- Select top-N highest-uncertainty samples from reliable sets
+- InfoNCE loss with positive/negative pairs
 
-### WHU-CD Dataset (5% labeled data)
+**Global Contrastive Learning:**
+- Prototype memory banks (M⁺/M⁻) for foreground/background
+- Contrast current batch prototypes with historical prototypes
+- Provides class-level semantic guidance
 
-| Metric | Performance |
-|--------|-------------|
-| F1-Score | ~89.41% |
-| IoU | ~81.52% |
-| Precision | ~90.2% |
-| Recall | ~88.7% |
+### 4. Uncertainty-Guided Loss Re-weighting (UGLR)
 
-*Note: Results may vary depending on hardware and random initialization.*
+**Differentiated Weighting:**
 
-## Troubleshooting
-
-### Out of Memory (OOM) Error
-
-```bash
-# Reduce batch size
-python train.py --batch_size 4
-
-# Reduce image size
-python train.py --image_size 224
-
-# Use gradient checkpointing (modify model if needed)
+For labeled data (strengthen difficult regions):
+```
+w_L(x,y) = exp(γ_L × U(x,y)), γ_L = 2.0 > 0
 ```
 
-### Slow Training
-
-```bash
-# Increase number of workers
-python train.py --num_workers 8
-
-# Use mixed precision training (add to train.py if needed)
+For unlabeled data (suppress unreliable regions):
+```
+w_U(x,y) = exp(γ_U × U(x,y)), γ_U = -1.0 < 0
 ```
 
-### Low Performance
-
-1. Ensure proper data preprocessing
-2. Verify label format (binary: 0 for unchanged, 1 for changed)
-3. Try different label ratios
-4. Adjust hyperparameters (learning rate, warmup epochs)
-
-## Citation
-
-If you use this code in your research, please cite the original paper:
-
-```bibtex
-@article{uscd2024,
-  title={Uncertainty-Guided Semi-Supervised Change Detection for Remote Sensing Images},
-  author={[Authors]},
-  journal={IEEE [Journal Name]},
-  year={2024}
-}
-```
-
-## License
-
-This implementation is provided for research purposes only. Please refer to the original paper for licensing details.
-
-## Acknowledgments
-
-This implementation is based on the paper "Uncertainty-Guided Semi-Supervised Change Detection for Remote Sensing Images" and uses:
-- PyTorch for deep learning
-- ResNet-50 from torchvision
-- DeepLab decoder architecture
-- Albumentations for data augmentation
-
-## Contact
-
-For questions and issues, please:
-1. Check the paper for theoretical details
-2. Review the code comments for implementation details
-3. Open an issue on the repository
+**Rationale:**
+- High-uncertainty labeled regions contain valuable discriminative information
+- High-uncertainty unlabeled regions likely contain noisy pseudo-labels
 
 ---
 
-**Note**: This is a research implementation. For production use, additional optimization and validation may be required.
+## 📊 Evaluation Metrics
+
+We report the following standard metrics:
+
+| Metric | Formula | Description |
+|--------|---------|-------------|
+| **Precision** | TP / (TP + FP) | Accuracy of positive predictions |
+| **Recall** | TP / (TP + FN) | Coverage of actual positives |
+| **F1-Score** | 2 × (Prec × Rec) / (Prec + Rec) | Harmonic mean of precision and recall |
+| **IoU** | TP / (TP + FP + FN) | Intersection over Union (Jaccard Index) |
+| **OA** | (TP + TN) / Total | Overall Accuracy |
+
+where TP (True Positive), FP (False Positive), TN (True Negative), FN (False Negative).
+
+---
+
+## 🎨 Qualitative Results
+
+<p align="center">
+  <img src="fig/3.png" alt="Qualitative Comparison" width="100%">
+</p>
+
+**Observations:**
+- ✅ USCD produces cleaner boundaries and more complete change regions
+- ✅ Significantly reduces false positives (red) and false negatives (green)
+- ✅ Excels in challenging scenarios: complex backgrounds, small changes, subtle boundaries
+- ✅ Uncertainty maps show reasonable distribution concentrated at difficult regions
+
+---
+
+## 💡 Key Contributions
+
+1. **Novel Uncertainty-Guided Paradigm**: First to systematically utilize prediction uncertainty as the core signal for identifying and reinforcing learning in difficult regions
+
+2. **Complete Framework Design**: Three synergistic components (UAPA, DRCL, UGLR) that collectively address the challenge of spatial heterogeneity in change detection
+
+3. **State-of-the-Art Performance**: Extensive validation on 6 diverse datasets demonstrates consistent improvements, especially under limited supervision (5%-40% labels)
+
+4. **Strong Generalization**: Cross-domain experiments validate robust transferability and effective utilization of unlabeled data from different domains
+
+5. **Competitive Efficiency**: Achieves superior performance with computational cost comparable to existing methods (40.47M params, 394.5s/epoch)
+
+---
+
+## 🙏 Acknowledgments
+
+This work is built upon several excellent repositories and datasets:
+
+- **PyTorch**: Deep learning framework
+- **torchvision**: Pre-trained ResNet-50 backbone
+- **Albumentations**: Data augmentation library
+- **Dataset Providers**: LEVIR-CD, WHU-CD, CDD, S2Looking, SYSU-CD, JL1-CD
+
+We thank the authors of the baseline methods for making their code publicly available:
+- UniMatch ([Yang et al., CVPR 2023](https://github.com/LiheYoung/UniMatch))
+- SemiCD ([Bandara & Patel, arXiv 2022](https://github.com/wgcban/SemiCD))
+- CutMix-CD ([Shu et al., TGRS 2024](https://github.com/qaz670756/CutMix-CD))
+
+---
+
+## 📧 Contact
+
+For questions, discussions, or collaborations, please:
+
+- **Open an Issue**: [GitHub Issues](https://github.com/G124556/USCD/issues)
+- **Email**: [Contact via GitHub]
+
+---
+
+## 📄 License
+
+This project is released under the [MIT License](LICENSE).
+
+```
+MIT License
+
+Copyright (c) 2025 [Your Name/Organization]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+## 🔖 Repository Status
+
+![GitHub stars](https://img.shields.io/github/stars/G124556/USCD?style=social)
+![GitHub forks](https://img.shields.io/github/forks/G124556/USCD?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/G124556/USCD?style=social)
+
+**Last Updated**: December 2024  
+**Status**: Active Development | Paper Under Review
+
+---
+
+<p align="center">
+  <b>⭐ If you find this work helpful, please consider giving us a star! ⭐</b>
+</p>
