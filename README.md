@@ -101,65 +101,7 @@ dataset_root/
 
 ---
 
-## 🚀 Getting Started
 
-### Prerequisites
-
-```bash
-# Environment
-Python >= 3.7
-PyTorch >= 1.10
-CUDA >= 10.2 (for GPU training)
-```
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/G124556/USCD.git
-cd USCD
-
-# Create virtual environment (recommended)
-conda create -n uscd python=3.9
-conda activate uscd
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Quick Start
-
-**1. Training with 5% labeled data:**
-
-```bash
-python train.py \
-    --data_root /path/to/LEVIR-CD \
-    --label_ratio 0.05 \
-    --epochs 100 \
-    --batch_size 8 \
-    --pretrained \
-    --save_dir ./checkpoints/levir_5percent \
-    --log_dir ./logs/levir_5percent
-```
-
-**2. Testing:**
-
-```bash
-python test.py \
-    --data_root /path/to/LEVIR-CD \
-    --checkpoint ./checkpoints/levir_5percent/best.pth \
-    --batch_size 8 \
-    --save_vis \
-    --vis_dir ./visualizations
-```
-
-**3. Quick test (verify installation):**
-
-```bash
-python quick_test.py
-```
-
----
 
 ## 📈 Experimental Results
 
